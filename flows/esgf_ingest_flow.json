@@ -1,8 +1,8 @@
 {
-  "StartAt": "TransferStep",
+  "StartAt": "Transfer",
   "Comment": "A Flow for doing ingest of a dataset into ESGF repositories",
   "States": {
-    "TransferStep": {
+    "Transfer": {
       "Type": "Action",
       "ActionUrl": "https://actions.globus.org/transfer/transfer",
       "Parameters": {
@@ -29,9 +29,18 @@
       ],
       "Next": "ESGFExtract"
     },
+    "TransferFailure": {
+      "Type": "Pass",
+      "Parameters": {
+        "Message": "Transfer of data into ESGF Failed"
+      },
+      "ResultPath": "$.FlowResult",
+      "End": true
+    },
     "ESGFExtract": {
       "Type": "Action",
-      "ActionUrl": "https://LUKASZ_FILL_IN_URL_FOR_ACTION_PROVIDER",
+      "Comment": "Lukasz, fill in proper URL for the AP when it is deployed",
+      "ActionUrl": "https://actions.globus.org/hello_world",
       "Parameters": {
         "facets.$": "$.facets",
         "data_path.$": "$.destination_folder_path"
@@ -48,6 +57,14 @@
       ],
       "Next": "EmailNotification"
     },
+    "ExtractFailure": {
+      "Type": "Pass",
+      "Parameters": {
+        "Message": "Extraction or indexing of metadata failed"
+      },
+      "ResultPath": "$.FlowResult",
+      "End": true
+    },
     "EmailNotification": {
       "Type": "Action",
       "ActionUrl": "https://actions.globus.org/notification/notify",
@@ -55,8 +72,8 @@
         "notification_method": "email",
         "sender": "LUKASZ SET SENDER ADDRESS",
         "destination.$": "$._context.email",
-        "subject.$": "ESGF Dataset Ingest Complete",
-        "body_template.$": "We Have completed Ingest of your Dataset. Thank you for your submission.",
+        "subject": "ESGF Dataset Ingest Complete",
+        "body_template": "We Have completed Ingest of your Dataset. Thank you for your submission.",
         "body_variables.$": "$.EmailNotificationInput.body_variables",
         "body_mimetype": "text/html",
         "send_credentials": [
@@ -75,6 +92,14 @@
         ]
       },
       "ResultPath": "$.EmailNotificationResult",
+      "Next": "SuccessfulCompletion"
+    },
+    "SuccessfulCompletion": {
+      "Type": "Pass",
+      "Parameters": {
+        "Message": "The extraction and indexing completed succesfully"
+      },
+      "ResultPath": "$.FlowResult",
       "End": true
     }
   }
