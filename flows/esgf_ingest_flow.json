@@ -1,0 +1,81 @@
+{
+  "StartAt": "TransferStep",
+  "Comment": "A Flow for doing ingest of a dataset into ESGF repositories",
+  "States": {
+    "TransferStep": {
+      "Type": "Action",
+      "ActionUrl": "https://actions.globus.org/transfer/transfer",
+      "Parameters": {
+        "source_endpoint_id.$": "$.source_endpoint_id",
+        "destination_endpoint_id.$": "$.destination_endpoint_id",
+        "label": "For ESGF Ingest and Extract",
+        "transfer_items": [
+          {
+            "source_path.$": "$.source_folder_path",
+            "destination_path.$": "$.destination_folder_path",
+            "recursive": true
+          }
+        ]
+      },
+      "ResultPath": "$.TransferResult",
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "ActionUnableToRun",
+            "ActionFailedException"
+          ],
+          "Next": "TransferFailure"
+        }
+      ],
+      "Next": "ESGFExtract"
+    },
+    "ESGFExtract": {
+      "Type": "Action",
+      "ActionUrl": "https://LUKASZ_FILL_IN_URL_FOR_ACTION_PROVIDER",
+      "Parameters": {
+        "facets.$": "$.facets",
+        "data_path.$": "$.destination_folder_path"
+      },
+      "ResultPath": "$.ExtractResult",
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "ActionUnableToRun",
+            "ActionFailedException"
+          ],
+          "Next": "ExtractFailure"
+        }
+      ],
+      "Next": "EmailNotification"
+    },
+    "EmailNotification": {
+      "Type": "Action",
+      "ActionUrl": "https://actions.globus.org/notification/notify",
+      "Parameters": {
+        "notification_method": "email",
+        "sender": "LUKASZ SET SENDER ADDRESS",
+        "destination.$": "$._context.email",
+        "subject.$": "ESGF Dataset Ingest Complete",
+        "body_template.$": "We Have completed Ingest of your Dataset. Thank you for your submission.",
+        "body_variables.$": "$.EmailNotificationInput.body_variables",
+        "body_mimetype": "text/html",
+        "send_credentials": [
+          {
+            "credential_type": "smtp",
+            "credential_method": "email",
+            "credential_value": {
+              "hostname": "smtp.gmail.com",
+              "username": "LUKASZ_FILL_IN_SMTP_CREDENTIALS",
+              "password": "password"
+            }
+          }
+        ],
+        "__Private_Parameters": [
+          "send_credentials"
+        ]
+      },
+      "ResultPath": "$.EmailNotificationResult",
+      "End": true
+    }
+  }
+}

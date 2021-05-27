@@ -1,0 +1,21 @@
+{
+  "type": "object",
+  "properties": {
+    "source_endpoint_id": {
+      "type": "string"
+    },
+    "destination_endpoint_id": {
+      "type": "string"
+    },
+    "source_folder_path": {
+      "type": "string"
+    },
+    "destinaion_folder_path": {
+      "type": "string"
+    }
+    "facets": {
+      "type": "object"
+    }    
+  }
+}
+
