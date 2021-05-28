@@ -1,8 +1,15 @@
 {
   "type": "object",
+  "required": [
+    "data_path",
+    "facets"
+  ],
   "properties": {
-    "source_folder": {
+    "data_path": {
       "type": "string"
+    },
+    "facets": {
+      "type": "object"
     }
   },
   "additionalProperties": false

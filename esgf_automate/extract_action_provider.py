@@ -11,8 +11,14 @@ from .persistence import store_action, lookup_action_by_id, delete_action_by_id
 
 log = logging.getLogger(__name__)
 
+GLOBUS_AUTH_CLIENT_ID = "45aa9047-b21d-44c0-8abf-7023b532cb5b"
+GLOBUS_AUTH_CLIENT_SECRET = "DdO/n8HAon8Yw0btHm51SeSZzQhpOLdNbAa+8pBhCII="
+GLOBUS_AUTH_SCOPE = "https://auth.globus.org/scopes/45aa9047-b21d-44c0-8abf-7023b532cb5b/esgf_extract_action_all"
+GLOBUS_AUTH_CLIENT_NAME = "ESGF Demo Metadata Extract Action Provider"
+
+
 ap_description = ActionProviderDescription(
-    globus_auth_scope="",
+    globus_auth_scope=GLOBUS_AUTH_SCOPE,
     admin_contact="lukasz@globus.org",
     title="ESGF Metadata Extract",
     subtitle="An Action which will extract metadata from an ESGF dataset",
@@ -27,7 +33,7 @@ provider_bp = ActionProviderBlueprint(
     import_name=__name__,
     url_prefix="/esgf_extract",
     provider_description=ap_description,
-    globus_auth_client_name="",
+    globus_auth_client_name=GLOBUS_AUTH_CLIENT_ID,
 )
 
 @provider_bp.action_run
@@ -40,6 +46,7 @@ def run_action(request: ActionRequest, auth: AuthState) -> ActionStatus:
         creator_id=auth.effective_identity,
         monitor_by=request.monitor_by,
         manage_by=request.manage_by,
+        details={"Running": True}
     )
     store_action(action, request, {})
     return action
@@ -80,10 +87,13 @@ def action_release(action_id: str, auth: AuthState):
 
 def create_app() -> Flask:
     app = Flask(__name__)
+    app.config[f"{provider_bp.name.upper()}_CLIENT_ID"] = GLOBUS_AUTH_CLIENT_ID
+    app.config[f"{provider_bp.name.upper()}_CLIENT_SECRET"] = GLOBUS_AUTH_CLIENT_SECRET
     app.register_blueprint(provider_bp)
     return app
 
 app = create_app()
+
 
 def main():
     app.run(debug=True, port=5009)
