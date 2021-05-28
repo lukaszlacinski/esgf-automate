@@ -41,6 +41,7 @@
       "Type": "Action",
       "Comment": "Lukasz, fill in proper URL for the AP when it is deployed",
       "ActionUrl": "https://actions.globus.org/hello_world",
+      "ActionScope": "https://auth.globus.org/scopes/45aa9047-b21d-44c0-8abf-7023b532cb5b/esgf_extract_action_all",
       "Parameters": {
         "facets.$": "$.facets",
         "data_path.$": "$.destination_folder_path"
