@@ -12,10 +12,9 @@
     },
     "destinaion_folder_path": {
       "type": "string"
-    }
+    },
     "facets": {
       "type": "object"
-    }    
+    }
   }
 }
-
