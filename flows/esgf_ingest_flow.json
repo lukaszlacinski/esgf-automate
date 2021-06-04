@@ -41,6 +41,7 @@
       "Type": "Action",
       "Comment": "Run the ESGF Metadata extraction process",
       "ActionUrl": "https://esgf.petrel.host/esgf_extract",
+      "ActionScope": "https://auth.globus.org/scopes/45aa9047-b21d-44c0-8abf-7023b532cb5b/esgf_extract_action_all",
       "Parameters": {
         "facets.$": "$.facets",
         "data_path.$": "$.destination_folder_path"
@@ -55,15 +56,24 @@
           "Next": "ExtractFailure"
         }
       ],
-      "Next": "EmailNotification"
+      "Next": "DumpContext"
     },
     "ExtractFailure": {
       "Type": "Pass",
       "Parameters": {
-        "Message": "Extraction or indexing of metadata failed"
+        "Message": "Extraction or indexing of metadata failed",
+        "Cause.$": "$.Cause"
       },
       "ResultPath": "$.FlowResult",
       "End": true
+    },
+    "DumpContext": {
+      "Type": "Pass",
+      "Parameters": {
+        "Context.$": "$._context"
+      },
+      "ResultPath": "$.ContextOutput",
+      "Next": "EmailNotification"
     },
     "EmailNotification": {
       "Type": "Action",
@@ -71,10 +81,9 @@
       "Parameters": {
         "notification_method": "email",
         "sender": "ESGF Portal <esgf.notifications@gmail.com>",
-        "destination.$": "$._context.email",
+        "destination.$": "$.user_email",
         "subject": "ESGF Dataset Ingest Complete",
         "body_template": "We Have completed Ingest of your Dataset. Thank you for your submission.",
-        "body_variables.$": "$.EmailNotificationInput.body_variables",
         "body_mimetype": "text/html",
         "send_credentials": [
           {
@@ -83,7 +92,7 @@
             "credential_value": {
               "hostname": "smtp.gmail.com",
               "username": "esgf.notifications@gmail.com",
-              "password": "password"
+              "password": "EicjTivm32"
             }
           }
         ],

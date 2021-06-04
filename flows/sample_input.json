@@ -1,0 +1,10 @@
+{
+  "source_endpoint_id": "ddb59aef-6d04-11e5-ba46-22000b92c6ec",
+  "destination_endpoint_id": "ddb59af0-6d04-11e5-ba46-22000b92c6ec",
+  "source_folder_path": "/~/esgf_data",
+  "destination_folder_path": "/~/",
+  "facets": {
+    "hello": "world"
+  },
+  "user_email": "pruyne@globus.org"
+}

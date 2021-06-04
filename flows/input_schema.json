@@ -1,5 +1,14 @@
 {
   "type": "object",
+  "required": [
+    "source_endpoint_id",
+    "destination_endpoint_id",
+    "source_folder_path",
+    "destination_folder_path",
+    "facets",
+    "user_email"
+  ],
+  "additionalProperties": false,
   "properties": {
     "source_endpoint_id": {
       "type": "string"
@@ -10,11 +19,14 @@
     "source_folder_path": {
       "type": "string"
     },
-    "destinaion_folder_path": {
+    "destination_folder_path": {
       "type": "string"
     },
     "facets": {
       "type": "object"
+    },
+    "user_email": {
+      "type": "string"
     }
   }
 }
