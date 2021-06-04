@@ -1,4 +1,5 @@
 import logging
+import uuid
 from typing import Any, Dict, Optional
 
 from flask import Flask
@@ -91,7 +92,9 @@ def run_action(request: ActionRequest, auth: AuthState) -> ActionStatus:
     ingest_data = _create_mock_metadata(body["data_path"], body["facets"])
     sc = _get_search_client(auth)
     try:
-        resp = sc.ingest(SEARCH_INDEX_ID, ingest_data)
+        # resp = sc.ingest(SEARCH_INDEX_ID, ingest_data)
+        # Mock the search call
+        resp = {"acknowledged": True, "data":  {"task_id": str(uuid.uuid4())}}
     except SearchAPIError as e:
         status = ActionStatusValue.FAILED
         result_details = format_search_api_exception(e)
@@ -101,7 +104,8 @@ def run_action(request: ActionRequest, auth: AuthState) -> ActionStatus:
             status = ActionStatusValue.ACTIVE
         else:
             status = ActionStatusValue.FAILED
-        result_details = resp.data
+        # result_details = resp.data
+        result_details = resp['data']
         action_id = result_details["task_id"]
     action = ActionStatus(
         action_id=action_id,
@@ -130,7 +134,9 @@ def action_status(action_id: str, auth: AuthState):
     search_task_id = action.action_id
     status: Optional[ActionStatusValue] = None
     try:
-        search_task_info = sc.get_task(search_task_id).data
+        # search_task_info = sc.get_task(search_task_id).data
+        # Mock the task status call
+        search_task_info = {"state": "SUCCESS"}
         if "error" in search_task_info or search_task_info["state"] == "FAILED":
             status = ActionStatusValue.FAILED
             details = {
