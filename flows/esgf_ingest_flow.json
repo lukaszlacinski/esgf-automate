@@ -70,7 +70,7 @@
       "ActionUrl": "https://actions.globus.org/notification/notify",
       "Parameters": {
         "notification_method": "email",
-        "sender": "LUKASZ SET SENDER ADDRESS",
+        "sender": "ESGF Portal <esgf.notifications@gmail.com>",
         "destination.$": "$._context.email",
         "subject": "ESGF Dataset Ingest Complete",
         "body_template": "We Have completed Ingest of your Dataset. Thank you for your submission.",
@@ -82,7 +82,7 @@
             "credential_method": "email",
             "credential_value": {
               "hostname": "smtp.gmail.com",
-              "username": "LUKASZ_FILL_IN_SMTP_CREDENTIALS",
+              "username": "esgf.notifications@gmail.com",
               "password": "password"
             }
           }
