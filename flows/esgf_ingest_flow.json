@@ -56,24 +56,15 @@
           "Next": "ExtractFailure"
         }
       ],
-      "Next": "DumpContext"
+      "Next": "EmailNotification"
     },
     "ExtractFailure": {
       "Type": "Pass",
       "Parameters": {
-        "Message": "Extraction or indexing of metadata failed",
-        "Cause.$": "$.Cause"
+        "Message": "Extraction or indexing of metadata failed"
       },
       "ResultPath": "$.FlowResult",
       "End": true
-    },
-    "DumpContext": {
-      "Type": "Pass",
-      "Parameters": {
-        "Context.$": "$._context"
-      },
-      "ResultPath": "$.ContextOutput",
-      "Next": "EmailNotification"
     },
     "EmailNotification": {
       "Type": "Action",
