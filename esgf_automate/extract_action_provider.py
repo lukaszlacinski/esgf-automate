@@ -1,5 +1,6 @@
 import logging
 import uuid
+import json
 from typing import Any, Dict, Optional
 
 from flask import Flask
@@ -20,7 +21,7 @@ from globus_sdk import SearchAPIError, SearchClient
 
 from .helpers import iso_tz_now, load_schema
 from .persistence import delete_action_by_id, lookup_action_by_id, store_action
-
+from .metadata import facets_template, dataset_metadata, file_metadata
 
 log = logging.getLogger(__name__)
 
@@ -30,7 +31,7 @@ GLOBUS_AUTH_SCOPE = "https://auth.globus.org/scopes/45aa9047-b21d-44c0-8abf-7023
 GLOBUS_AUTH_CLIENT_NAME = "ESGF Demo Metadata Extract Action Provider"
 
 # TODO: ID of the Search Index we write to
-SEARCH_INDEX_ID = "aaa-bbbb-ccc-ddd-eee-fff"
+SEARCH_INDEX_ID = "50fcc388-80af-485b-9c57-d681d628fb08"
 
 ap_description = ActionProviderDescription(
     globus_auth_scope=GLOBUS_AUTH_SCOPE,
@@ -61,15 +62,57 @@ def _get_search_client(auth: AuthState) -> SearchClient:
 
 
 def _create_mock_metadata(data_path: str, facets: Dict[str, Any]) -> Dict[str, Any]:
-    # TODO, Do something to create the metadata for Search
-    return {
-        "ingest_type": "GMetaEntry",
-        "ingest_data": {
-            "subject": f"https://esgf.org/{data_path}",
-            "visible_to": ["public"],
-            "contents": facets,
-        },
-    }
+    # TO DO: call Transfer API to get a list of files in data_path
+    # Temporarily use hardcoded list of two files from
+    # E3SM/1_3/G-IAF-DIB-ISMF-3dGM/1deg_atm_60-30km_ocean/ocean/native/model-output/mon/ens1/v1/
+    files = [
+        "mpaso.hist.am.timeSeriesStatsMonthly.0001-01-01.nc",
+        "mpaso.hist.am.timeSeriesStatsMonthly.0001-02-01.nc",
+    ]
+    gmeta = []
+
+    dataset_gmeta_entry = dataset_metadata
+    project = facets.get("project")
+    dataset_id = project
+    dataset_gmeta_entry["content"]["project"] = [project]
+    dataset_gmeta_entry["content"]["source"] = [project.upper()]
+    for key, value in facets.items():
+        if key == "version":
+            dataset_gmeta_entry["content"][key] = value[1:]
+        else:
+            dataset_gmeta_entry["content"][key] = [value]
+        if key in facets_template:
+            dataset_id += "." + value
+
+    dataset_gmeta_entry["subject"] = dataset_id + ".v1|esgf-data2.llnl.gov"
+    dataset_gmeta_entry["content"]["master_id"] = dataset_id
+    dataset_gmeta_entry["content"]["instance_id"] = dataset_id + ".v1"
+    dataset_gmeta_entry["content"]["id"] = dataset_id + ".v1|esgf-data2.llnl.gov"
+    dataset_gmeta_entry["content"]["title"] = dataset_id
+    dataset_gmeta_entry["content"]["number_of_files"] = len(files)
+    gmeta.append(dataset_gmeta_entry)
+
+    for f in files:
+        file_gmeta_entry = file_metadata
+        for key, value in facets.items():
+            if key == "version":
+                file_gmeta_entry["content"][key] = value[1:]
+            else:
+                file_gmeta_entry["content"][key] = [value]
+        file_gmeta_entry["subject"] = dataset_id + ".v1" + f
+        file_gmeta_entry["content"]["master_id"] = dataset_id
+        file_gmeta_entry["content"]["instance_id"] = dataset_id + ".v1"
+        file_gmeta_entry["content"]["id"] = dataset_id + ".v1." + f
+        file_gmeta_entry["content"]["title"] = f
+        file_gmeta_entry["content"]["url"] = [
+            "https://dabdceba-6d04-11e5-ba46-22000b92c6ec" + \
+                    data_path + f + "|HTTPServer",
+            "globus://dabdceba-6d04-11e5-ba46-22000b92c6ec" + \
+                    data_path + f + "|Globus",
+        ]
+        gmeta.append(file_gmeta_entry)
+
+    return {"gmeta": gmeta}
 
 
 def format_search_api_exception(exc: SearchAPIError) -> Dict[str, Any]:
@@ -90,12 +133,15 @@ def run_action(request: ActionRequest, auth: AuthState) -> ActionStatus:
     body = request.body
     print(f"Input Body: {body}")
     ingest_data = _create_mock_metadata(body["data_path"], body["facets"])
+    #print(json.dumps(ingest_data, indent=4))
     sc = _get_search_client(auth)
     try:
-        # resp = sc.ingest(SEARCH_INDEX_ID, ingest_data)
+        resp = sc.ingest(SEARCH_INDEX_ID, ingest_data)
+        print(resp)
         # Mock the search call
-        resp = {"acknowledged": True, "data":  {"task_id": str(uuid.uuid4())}}
+        #resp = {"acknowledged": True, "data":  {"task_id": str(uuid.uuid4())}}
     except SearchAPIError as e:
+        print("failed", e)
         status = ActionStatusValue.FAILED
         result_details = format_search_api_exception(e)
         action_id = shortish_id()
