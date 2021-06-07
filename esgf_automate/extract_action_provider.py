@@ -112,7 +112,12 @@ def _create_mock_metadata(data_path: str, facets: Dict[str, Any]) -> Dict[str, A
         ]
         gmeta.append(file_gmeta_entry)
 
-    return {"gmeta": gmeta}
+    return {
+        "ingest_type": "GMetaList",
+        "ingest_data": {
+            "gmeta": gmeta,
+        },
+    }
 
 
 def format_search_api_exception(exc: SearchAPIError) -> Dict[str, Any]:
@@ -133,7 +138,7 @@ def run_action(request: ActionRequest, auth: AuthState) -> ActionStatus:
     body = request.body
     print(f"Input Body: {body}")
     ingest_data = _create_mock_metadata(body["data_path"], body["facets"])
-    #print(json.dumps(ingest_data, indent=4))
+    print(json.dumps(ingest_data, indent=4))
     sc = _get_search_client(auth)
     try:
         resp = sc.ingest(SEARCH_INDEX_ID, ingest_data)
