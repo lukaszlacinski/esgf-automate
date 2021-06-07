@@ -1,6 +1,7 @@
 import logging
 import uuid
 import json
+import copy
 from typing import Any, Dict, Optional
 
 from flask import Flask
@@ -93,7 +94,7 @@ def _create_mock_metadata(data_path: str, facets: Dict[str, Any]) -> Dict[str, A
     gmeta.append(dataset_gmeta_entry)
 
     for f in files:
-        file_gmeta_entry = file_metadata
+        file_gmeta_entry = copy.deepcopy(file_metadata)
         for key, value in facets.items():
             if key == "version":
                 file_gmeta_entry["content"][key] = value[1:]
@@ -104,13 +105,16 @@ def _create_mock_metadata(data_path: str, facets: Dict[str, Any]) -> Dict[str, A
         file_gmeta_entry["content"]["instance_id"] = dataset_id + ".v1"
         file_gmeta_entry["content"]["id"] = dataset_id + ".v1." + f
         file_gmeta_entry["content"]["title"] = f
+        file_gmeta_entry["content"]["dataset_id"] = dataset_id + ".v1|esgf-data2.llnl.gov"
         file_gmeta_entry["content"]["url"] = [
             "https://dabdceba-6d04-11e5-ba46-22000b92c6ec" + \
                     data_path + f + "|HTTPServer",
             "globus://dabdceba-6d04-11e5-ba46-22000b92c6ec" + \
                     data_path + f + "|Globus",
         ]
+        print(file_gmeta_entry)
         gmeta.append(file_gmeta_entry)
+        print(gmeta)
 
     return {
         "ingest_type": "GMetaList",
@@ -155,9 +159,8 @@ def run_action(request: ActionRequest, auth: AuthState) -> ActionStatus:
             status = ActionStatusValue.ACTIVE
         else:
             status = ActionStatusValue.FAILED
-        # result_details = resp.data
-        result_details = resp['data']
-        action_id = result_details["task_id"]
+        result_details = ""
+        action_id = resp["task_id"]
     action = ActionStatus(
         action_id=action_id,
         status=status,
